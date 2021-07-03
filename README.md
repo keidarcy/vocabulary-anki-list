@@ -1,2 +1,2 @@
-# vocabulary-anki-list
-Vocabulary anki list chrome extension
+# vocabulary-anki-memo
+Vocabulary anki memo chrome extension
