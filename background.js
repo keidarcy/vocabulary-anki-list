@@ -1,10 +1,12 @@
 const ANKI_COMMAND = 'anki-command';
 const searchUrl = 'https://api.dictionaryapi.dev/api/v2/entries/en_US/';
 
-chrome.contextMenus.create({
-  id: ANKI_COMMAND,
-  title: 'Add "%s" to anki memo',
-  contexts: ['selection'] // ContextType
+chrome.contextMenus.remove(ANKI_COMMAND, () => {
+  chrome.contextMenus.create({
+    id: ANKI_COMMAND,
+    title: 'Add "%s" to Anki Memo',
+    contexts: ['selection'] // ContextType
+  });
 });
 
 chrome.contextMenus.onClicked.addListener(function (info, tab) {

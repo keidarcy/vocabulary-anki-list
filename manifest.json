@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Vocabulary anki memo",
+  "name": "Vocabulary Anki Memo",
   "description": "Quick English vocabulary search history anki memo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "icons": {
     "16": "icon.png",
     "48": "icon.png",
@@ -12,7 +12,7 @@
     "default_icon": "icon.png",
     "default_popup": "popup.html"
   },
-  "permissions": ["activeTab", "contextMenus", "storage"],
+  "permissions": ["contextMenus", "storage"],
   "host_permissions": ["https://api.dictionaryapi.dev/"],
   "background": {
     "service_worker": "background.js"

@@ -3,7 +3,7 @@ const STORAGE_KEY = 'AnkiStorageKey';
 document.body.onload = function () {
   chrome.storage.sync.get(STORAGE_KEY, function (data) {
     if (!chrome.runtime.error) {
-      const words = data[STORAGE_KEY];
+      let words = data[STORAGE_KEY];
       const container = document.querySelector('.word-cards-container');
       if (typeof words != 'object' || words.length === 0) {
         container.innerHTML = `
@@ -47,7 +47,8 @@ document.body.onload = function () {
         trashIcon.addEventListener('click', function () {
           if (this.classList.contains('icon-status-clicked')) {
             const filtered = words.filter((w) => w.word !== this.dataset.word);
-            chrome.storage.sync.set({ AnkiStorageKey: filtered }, function () {
+            words = filtered;
+            chrome.storage.sync.set({ AnkiStorageKey: words }, function () {
               console.log('word deleted');
             });
             this.closest('.word-card').classList.add('hide');
