@@ -118,6 +118,9 @@ h1 {
   z-index: 10;
   inset: 0;
 }
+.modal-overlay.hide {
+  display: none;
+}
 
 .modal-input {
   position: absolute;
@@ -134,4 +137,8 @@ h1 {
 
 .modal-input::placeholder {
   font-family: 'Nunito', sans-serif;
+}
+
+.modal-input:focus {
+  border: 1px solid black;
 }
