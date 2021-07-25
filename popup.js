@@ -5,9 +5,12 @@ const container = document.querySelector('.word-cards-container');
 const newWordForm = document.querySelector('[data-add-word-form]');
 const iconBtn = document.querySelector('.logo-img');
 
-iconBtn.addEventListener('click', function () {
-  newWordForm.classList.remove('hide');
+document.body.addEventListener('keydown', function (e) {
+  if (e.code !== 'Enter') return;
+  showAddOverlay();
 });
+
+iconBtn.addEventListener('click', showAddOverlay);
 
 newWordForm.addEventListener('submit', addWord);
 
@@ -121,4 +124,11 @@ function addWord(e) {
       }
     });
   }
+}
+
+function showAddOverlay() {
+  newWordForm.classList.remove('hide');
+  setTimeout(() => {
+    newWordForm.querySelector('input').focus();
+  }, 100);
 }
