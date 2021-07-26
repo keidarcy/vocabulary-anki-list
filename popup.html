@@ -22,10 +22,10 @@
   <body>
     <div class="header flex">
       <h1 class="version">Vocabulary Anki Memo</h1>
-      <div class="logo-img">
+      <button class="logo-img">
         <img src="./images/anki-logo.png" alt="anki-logo" />
         <p class="logo-add">New</p>
-      </div>
+      </button>
     </div>
     <div class="word-cards-container">
       <div class="flex word-card">
@@ -33,6 +33,9 @@
       </div>
     </div>
     <form class="modal-overlay hide" data-add-word-form>
+      <button data-word-overlay-close>
+        <i class="fas fa-times fa-2x"></i>
+      </button>
       <input
         type="text"
         name="new-word"

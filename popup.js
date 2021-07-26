@@ -3,16 +3,42 @@ let wordsInList;
 const emptyEle = document.querySelector('.word-card');
 const container = document.querySelector('.word-cards-container');
 const newWordForm = document.querySelector('[data-add-word-form]');
-const iconBtn = document.querySelector('.logo-img');
+const iconBtn = document.querySelector('button.logo-img');
+const overlayCloseBtn = document.querySelector('button[data-word-overlay-close]');
+
+const keyMap = new Map();
 
 document.body.addEventListener('keydown', function (e) {
-  if (e.code !== 'Enter') return;
-  showAddOverlay();
+  if (
+    e.key === 'Meta' ||
+    e.key === 'Control' ||
+    e.key === 'Backspace' ||
+    e.key === 'Enter'
+  ) {
+    if (e.key === 'Meta' || e.key === 'Control') {
+      keyMap.set('control', true);
+    }
+    if (keyMap.get('control') && e.key === 'Backspace') {
+      hideAddOverlay();
+    }
+    if (keyMap.get('control') && e.key === 'Enter') {
+      showAddOverlay();
+    }
+    return;
+  }
+});
+
+document.body.addEventListener('keyup', function (e) {
+  if (e.key === 'Meta' || e.key === 'Control') {
+    keyMap.delete('control');
+  }
 });
 
 iconBtn.addEventListener('click', showAddOverlay);
 
 newWordForm.addEventListener('submit', addWord);
+
+overlayCloseBtn.addEventListener('click', hideAddOverlay);
 
 document.body.onload = function () {
   chrome.storage.sync.get(STORAGE_KEY, function (data) {
@@ -36,13 +62,13 @@ function handleWordUI() {
 					<div class="word-card-actions flex">
 					${
             word.audio
-              ? `<i class="js-volume-icon fa fa-volume-up icon-status-none"></i>
+              ? `<button data-volume-icon><i class="fa fa-volume-up"></i></button>
 						<audio hidden>
 							<source src=${word.audio} type="audio/mp3">
 						</audio>`
               : ''
           }
-						<i data-word=${word.word} class="js-delete-icon fa fa-trash-alt icon-status-none"></i>
+						<button data-trash-icon data-word=${word.word}><i class="fa fa-trash-alt"></i></button>
 					</div>
 				</div>`;
     })
@@ -51,7 +77,7 @@ function handleWordUI() {
 }
 
 function handleAudio() {
-  [...document.querySelectorAll('.js-volume-icon')].forEach((audioIcon, index) => {
+  [...document.querySelectorAll('[data-volume-icon]')].forEach((audioIcon, index) => {
     audioIcon.addEventListener('click', () => {
       document.getElementsByTagName('audio')[index].play();
     });
@@ -59,21 +85,17 @@ function handleAudio() {
 }
 
 function handleDeletion() {
-  [...document.querySelectorAll('.js-delete-icon')].forEach((trashIcon, index) => {
-    trashIcon.addEventListener('click', function () {
-      if (this.classList.contains('icon-status-clicked')) {
-        const filtered = wordsInList.filter((w) => w.word !== this.dataset.word);
-        wordsInList = filtered;
-        chrome.storage.sync.set({ AnkiStorageKey: wordsInList }, function () {
-          console.log('word deleted');
-        });
-        this.closest('.word-card').remove();
-        if (wordsInList.length === 0) {
-          container.append(emptyEle);
-        }
-      } else {
-        this.classList.replace('icon-status-none', 'icon-status-clicked');
+  [...document.querySelectorAll('[data-trash-icon]')].forEach((trashBtn, index) => {
+    trashBtn.addEventListener('click', function () {
+      if (wordsInList.length === 0) {
+        container.append(emptyEle);
       }
+      const filtered = wordsInList.filter((w) => w.word !== this.dataset.word);
+      wordsInList = filtered;
+      chrome.storage.sync.set({ AnkiStorageKey: wordsInList }, function () {
+        console.log('word deleted');
+      });
+      this.closest('.word-card').remove();
     });
   });
 }
@@ -81,8 +103,10 @@ function handleDeletion() {
 function addWord(e) {
   e.preventDefault();
   const word = this.firstElementChild.value.trim().replace(/[^a-zA-Z']/g, '');
+  if (!word) return;
   searchAndSaveToStorage(word);
-  newWordForm.classList.add('hide');
+  hideAddOverlay();
+  this.reset();
 
   function searchAndSaveToStorage(word) {
     const STORAGE_KEY = 'AnkiStorageKey';
@@ -131,4 +155,8 @@ function showAddOverlay() {
   setTimeout(() => {
     newWordForm.querySelector('input').focus();
   }, 100);
+}
+
+function hideAddOverlay() {
+  newWordForm.classList.add('hide');
 }
