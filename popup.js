@@ -5,8 +5,10 @@ const container = document.querySelector('.word-cards-container');
 const newWordForm = document.querySelector('[data-add-word-form]');
 const iconBtn = document.querySelector('button.logo-img');
 const overlayCloseBtn = document.querySelector('button[data-word-overlay-close]');
-
 const keyMap = new Map();
+const memoActions = new MemoActions();
+
+// ***************************** Events
 
 document.body.addEventListener('keydown', function (e) {
   if (
@@ -19,10 +21,10 @@ document.body.addEventListener('keydown', function (e) {
       keyMap.set('control', true);
     }
     if (keyMap.get('control') && e.key === 'Backspace') {
-      hideAddOverlay();
+      memoActions.hideAddOverlay();
     }
     if (keyMap.get('control') && e.key === 'Enter') {
-      showAddOverlay();
+      memoActions.showAddOverlay();
     }
     return;
   }
@@ -34,12 +36,6 @@ document.body.addEventListener('keyup', function (e) {
   }
 });
 
-iconBtn.addEventListener('click', showAddOverlay);
-
-newWordForm.addEventListener('submit', addWord);
-
-overlayCloseBtn.addEventListener('click', hideAddOverlay);
-
 document.body.onload = function () {
   chrome.storage.sync.get(STORAGE_KEY, function (data) {
     if (!chrome.runtime.error) {
@@ -47,11 +43,19 @@ document.body.onload = function () {
       if (typeof wordsInList != 'object' || wordsInList.length === 0) return;
 
       handleWordUI();
-      handleAudio();
+      handleAudiosPlay();
       handleDeletion();
     }
   });
 };
+
+iconBtn.addEventListener('click', memoActions.showAddOverlay);
+
+newWordForm.addEventListener('submit', memoActions.addWord);
+
+overlayCloseBtn.addEventListener('click', memoActions.hideAddOverlay);
+
+// ********************************* Functions
 
 function handleWordUI() {
   const wordsHtml = wordsInList
@@ -76,45 +80,55 @@ function handleWordUI() {
   container.innerHTML = wordsHtml;
 }
 
-function handleAudio() {
-  [...document.querySelectorAll('[data-volume-icon]')].forEach((audioIcon, index) => {
-    audioIcon.addEventListener('click', () => {
-      document.getElementsByTagName('audio')[index].play();
-    });
-  });
+function handleAudiosPlay() {
+  [...document.querySelectorAll('[data-volume-icon]')].forEach(memoActions.audioPlay);
 }
 
 function handleDeletion() {
-  [...document.querySelectorAll('[data-trash-icon]')].forEach((trashBtn, index) => {
+  [...document.querySelectorAll('[data-trash-icon]')].forEach(memoActions.wordDelete);
+}
+
+function MemoActions() {
+  function audioPlay(audioBtn) {
+    audioBtn.addEventListener('click', () => {
+      audioBtn.nextElementSibling.play();
+    });
+  }
+  function wordDelete(trashBtn) {
     trashBtn.addEventListener('click', function () {
-      if (wordsInList.length === 0) {
-        container.append(emptyEle);
-      }
       const filtered = wordsInList.filter((w) => w.word !== this.dataset.word);
       wordsInList = filtered;
       chrome.storage.sync.set({ AnkiStorageKey: wordsInList }, function () {
         console.log('word deleted');
       });
       this.closest('.word-card').remove();
+      if (wordsInList.length === 0) {
+        container.append(emptyEle);
+      }
     });
-  });
-}
+  }
+  function showAddOverlay() {
+    newWordForm.classList.remove('hide');
+    setTimeout(() => {
+      newWordForm.querySelector('input').focus();
+    }, 100);
+  }
+  function hideAddOverlay() {
+    newWordForm.classList.add('hide');
+  }
+  function addWord(e) {
+    e.preventDefault();
+    const word = this.lastElementChild.value.trim().replace(/[^a-zA-Z']/g, '');
+    if (!word) return;
 
-function addWord(e) {
-  e.preventDefault();
-  const word = this.firstElementChild.value.trim().replace(/[^a-zA-Z']/g, '');
-  if (!word) return;
-  searchAndSaveToStorage(word);
-  hideAddOverlay();
-  this.reset();
+    // ********************* searchAndSaveToStorage
 
-  function searchAndSaveToStorage(word) {
     const STORAGE_KEY = 'AnkiStorageKey';
     const searchUrl = 'https://api.dictionaryapi.dev/api/v2/entries/en_US/';
     const URL = searchUrl + word;
+    this.lastElementChild.value = 'searching...';
 
-    chrome.storage.sync.get(STORAGE_KEY, function (data) {
-      console.log(data);
+    chrome.storage.sync.get(STORAGE_KEY, (data) => {
       let words = [];
       let existIndex = -1;
       if (data.hasOwnProperty(STORAGE_KEY)) {
@@ -143,20 +157,23 @@ function addWord(e) {
             chrome.storage.sync.set({ AnkiStorageKey: words }, function () {
               console.log('new Value set', words);
             });
+            hideAddOverlay();
+            this.reset();
           })
-          .catch(console.error);
+          .catch((err) => {
+            console.error(err);
+            hideAddOverlay();
+            this.reset();
+          });
       }
     });
   }
-}
 
-function showAddOverlay() {
-  newWordForm.classList.remove('hide');
-  setTimeout(() => {
-    newWordForm.querySelector('input').focus();
-  }, 100);
-}
-
-function hideAddOverlay() {
-  newWordForm.classList.add('hide');
+  return {
+    hideAddOverlay,
+    showAddOverlay,
+    addWord,
+    audioPlay,
+    wordDelete
+  };
 }
