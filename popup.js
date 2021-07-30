@@ -2,6 +2,7 @@ const STORAGE_KEY = 'AnkiStorageKey';
 let wordsInList;
 const emptyEle = document.querySelector('.word-card');
 const container = document.querySelector('.word-cards-container');
+const overlay = document.querySelector('.modal-overlay');
 const newWordForm = document.querySelector('[data-add-word-form]');
 const iconBtn = document.querySelector('button.logo-img');
 const overlayCloseBtn = document.querySelector('button[data-word-overlay-close]');
@@ -42,9 +43,9 @@ document.body.onload = function () {
       wordsInList = data[STORAGE_KEY];
       if (typeof wordsInList != 'object' || wordsInList.length === 0) return;
 
-      handleWordUI();
-      handleAudiosPlay();
-      handleDeletion();
+      memoActions.handleWordUI();
+      memoActions.handleAudiosPlay();
+      memoActions.handleDeletion();
     }
   });
 };
@@ -57,64 +58,15 @@ overlayCloseBtn.addEventListener('click', memoActions.hideAddOverlay);
 
 // ********************************* Functions
 
-function handleWordUI() {
-  const wordsHtml = wordsInList
-    .map((word) => {
-      return `<div class="flex word-card">
-					<div class="word-card-self">${word.word}</div>
-					<div class="word-card-description">${word.description}</div>
-					<div class="word-card-actions flex">
-					${
-            word.audio
-              ? `<button data-volume-icon><i class="fa fa-volume-up"></i></button>
-						<audio hidden>
-							<source src=${word.audio} type="audio/mp3">
-						</audio>`
-              : ''
-          }
-						<button data-trash-icon data-word=${word.word}><i class="fa fa-trash-alt"></i></button>
-					</div>
-				</div>`;
-    })
-    .join('');
-  container.innerHTML = wordsHtml;
-}
-
-function handleAudiosPlay() {
-  [...document.querySelectorAll('[data-volume-icon]')].forEach(memoActions.audioPlay);
-}
-
-function handleDeletion() {
-  [...document.querySelectorAll('[data-trash-icon]')].forEach(memoActions.wordDelete);
-}
-
 function MemoActions() {
-  function audioPlay(audioBtn) {
-    audioBtn.addEventListener('click', () => {
-      audioBtn.nextElementSibling.play();
-    });
-  }
-  function wordDelete(trashBtn) {
-    trashBtn.addEventListener('click', function () {
-      const filtered = wordsInList.filter((w) => w.word !== this.dataset.word);
-      wordsInList = filtered;
-      chrome.storage.sync.set({ AnkiStorageKey: wordsInList }, function () {
-        console.log('word deleted');
-      });
-      this.closest('.word-card').remove();
-      if (wordsInList.length === 0) {
-        container.append(emptyEle);
-      }
-    });
-  }
   function showAddOverlay() {
-    newWordForm.classList.remove('hide');
+    overlay.classList.remove('hide');
     setTimeout(() => {
       newWordForm.querySelector('input').focus();
     }, 100);
   }
-  function hideAddOverlay() {
-    newWordForm.classList.add('hide');
+  function hideAddOverlay(e) {
+    overlay.classList.add('hide');
   }
   function addWord(e) {
     e.preventDefault();
@@ -157,6 +109,11 @@ function MemoActions() {
             chrome.storage.sync.set({ AnkiStorageKey: words }, function () {
               console.log('new Value set', words);
             });
+            const div = document.createElement('div');
+            div.innerHTML = _addWordUi(newWordData);
+            _audioPlay(div.querySelector('[data-volume-icon]'));
+            _wordDelete(div.querySelector('[data-trash-icon]'));
+            container.prepend(div);
             hideAddOverlay();
             this.reset();
           })
@@ -168,12 +125,61 @@ function MemoActions() {
       }
     });
   }
+  function handleWordUI() {
+    const wordsHtml = wordsInList.map(_addWordUi).join('');
+    container.innerHTML = wordsHtml;
+  }
 
+  function handleAudiosPlay() {
+    [...document.querySelectorAll('[data-volume-icon]')].forEach(_audioPlay);
+  }
+
+  function handleDeletion() {
+    [...document.querySelectorAll('[data-trash-icon]')].forEach(_wordDelete);
+  }
+
+  function _addWordUi(word) {
+    return `<div class="flex word-card">
+					<div class="word-card-self">${word.word}</div>
+					<div class="word-card-description">${word.description}</div>
+					<div class="word-card-actions flex">
+					${
+            word.audio
+              ? `<button data-volume-icon><i class="fa fa-volume-up"></i></button>
+						<audio hidden>
+							<source src=${word.audio} type="audio/mp3">
+						</audio>`
+              : ''
+          }
+						<button data-trash-icon data-word=${word.word}><i class="fa fa-trash-alt"></i></button>
+					</div>
+				</div>`;
+  }
+
+  function _audioPlay(audioBtn) {
+    audioBtn.addEventListener('click', () => {
+      audioBtn.nextElementSibling.play();
+    });
+  }
+  function _wordDelete(trashBtn) {
+    trashBtn.addEventListener('click', function () {
+      const filtered = wordsInList.filter((w) => w.word !== this.dataset.word);
+      wordsInList = filtered;
+      chrome.storage.sync.set({ AnkiStorageKey: wordsInList }, function () {
+        console.log('word deleted');
+      });
+      this.closest('.word-card').remove();
+      if (wordsInList.length === 0) {
+        container.append(emptyEle);
+      }
+    });
+  }
   return {
     hideAddOverlay,
     showAddOverlay,
     addWord,
-    audioPlay,
-    wordDelete
+    handleWordUI,
+    handleAudiosPlay,
+    handleDeletion
   };
 }

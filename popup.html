@@ -32,16 +32,18 @@
         <div class="word-card-description">No vocabulary in anki memo yet</div>
       </div>
     </div>
-    <form class="modal-overlay hide" data-add-word-form>
-      <button data-word-overlay-close>
-        <i class="fas fa-times fa-2x"></i>
-      </button>
-      <input
-        type="text"
-        name="new-word"
-        class="modal-input"
-        placeholder="Enter to add new word"
-      />
-    </form>
+    <div class="modal-overlay hide">
+      <form data-add-word-form>
+        <button data-word-overlay-close>
+          <i class="fas fa-times fa-2x"></i>
+        </button>
+        <input
+          type="text"
+          name="new-word"
+          class="modal-input"
+          placeholder="Enter to add new word"
+        />
+      </form>
+    </div>
   </body>
 </html>
