@@ -28,15 +28,15 @@
       </button>
     </div>
     <div class="word-cards-container">
-      <div class="flex word-card">
+      <div class="flex word-card" data-empty="1">
         <div class="word-card-description">No vocabulary in anki memo yet</div>
       </div>
     </div>
     <div class="modal-overlay hide">
+      <button data-word-overlay-close>
+        <i class="fas fa-times fa-2x"></i>
+      </button>
       <form data-add-word-form>
-        <button data-word-overlay-close>
-          <i class="fas fa-times fa-2x"></i>
-        </button>
         <input
           type="text"
           name="new-word"

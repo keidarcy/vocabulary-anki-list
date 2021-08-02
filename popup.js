@@ -1,64 +1,66 @@
 const STORAGE_KEY = 'AnkiStorageKey';
-let wordsInList;
 const emptyEle = document.querySelector('.word-card');
 const container = document.querySelector('.word-cards-container');
 const overlay = document.querySelector('.modal-overlay');
 const newWordForm = document.querySelector('[data-add-word-form]');
 const iconBtn = document.querySelector('button.logo-img');
 const overlayCloseBtn = document.querySelector('button[data-word-overlay-close]');
-const keyMap = new Map();
-const memoActions = new MemoActions();
+const memos = memoActions();
+const shortCuts = shortCutsActions();
 
 // ***************************** Events
 
-document.body.addEventListener('keydown', function (e) {
-  if (
-    e.key === 'Meta' ||
-    e.key === 'Control' ||
-    e.key === 'Backspace' ||
-    e.key === 'Enter'
-  ) {
+window.addEventListener('DOMContentLoaded', memos.initialize, false);
+
+document.body.addEventListener('keydown', shortCuts.handleKeyDown);
+
+document.body.addEventListener('keyup', shortCuts.handleKeyUp);
+
+iconBtn.addEventListener('click', memos.showAddOverlay);
+
+newWordForm.addEventListener('submit', memos.addWord);
+
+overlayCloseBtn.addEventListener('click', memos.hideAddOverlay);
+
+// ********************************* shortCuts
+function shortCutsActions() {
+  const keyMap = new Map();
+  function handleKeyDown(e) {
+    if (
+      e.key === 'Meta' ||
+      e.key === 'Control' ||
+      e.key === 'Backspace' ||
+      e.key === 'Enter'
+    ) {
+      if (e.key === 'Meta' || e.key === 'Control') {
+        keyMap.set('control', true);
+      }
+      if (keyMap.get('control') && e.key === 'Backspace') {
+        memos.hideAddOverlay();
+      }
+      if (keyMap.get('control') && e.key === 'Enter') {
+        memos.showAddOverlay();
+      }
+      return;
+    }
+  }
+
+  function handleKeyUp(e) {
     if (e.key === 'Meta' || e.key === 'Control') {
-      keyMap.set('control', true);
+      keyMap.delete('control');
     }
-    if (keyMap.get('control') && e.key === 'Backspace') {
-      memoActions.hideAddOverlay();
-    }
-    if (keyMap.get('control') && e.key === 'Enter') {
-      memoActions.showAddOverlay();
-    }
-    return;
   }
-});
 
-document.body.addEventListener('keyup', function (e) {
-  if (e.key === 'Meta' || e.key === 'Control') {
-    keyMap.delete('control');
-  }
-});
-
-document.body.onload = function () {
-  chrome.storage.sync.get(STORAGE_KEY, function (data) {
-    if (!chrome.runtime.error) {
-      wordsInList = data[STORAGE_KEY];
-      if (typeof wordsInList != 'object' || wordsInList.length === 0) return;
-
-      memoActions.handleWordUI();
-      memoActions.handleAudiosPlay();
-      memoActions.handleDeletion();
-    }
-  });
-};
-
-iconBtn.addEventListener('click', memoActions.showAddOverlay);
-
-newWordForm.addEventListener('submit', memoActions.addWord);
-
-overlayCloseBtn.addEventListener('click', memoActions.hideAddOverlay);
+  return {
+    handleKeyDown,
+    handleKeyUp
+  };
+}
 
 // ********************************* Functions
 
-function MemoActions() {
+function memoActions() {
+  let wordsInList;
   function showAddOverlay() {
     overlay.classList.remove('hide');
     setTimeout(() => {
@@ -67,6 +69,7 @@ function MemoActions() {
   }
   function hideAddOverlay(e) {
     overlay.classList.add('hide');
+    newWordForm.reset();
   }
   function addWord(e) {
     e.preventDefault();
@@ -90,7 +93,13 @@ function MemoActions() {
 
       if (existIndex === -1) {
         fetch(URL)
-          .then((rawRes) => rawRes.json())
+          .then((rawRes) => {
+            if (rawRes.ok) {
+              return rawRes.json();
+            } else {
+              throw new Error('no word');
+            }
+          })
           .then((res) => {
             if (res.length === undefined) return;
             const { meanings, phonetics } = res[0];
@@ -113,29 +122,24 @@ function MemoActions() {
             div.innerHTML = _addWordUi(newWordData);
             _audioPlay(div.querySelector('[data-volume-icon]'));
             _wordDelete(div.querySelector('[data-trash-icon]'));
-            container.prepend(div);
+            if (container.firstElementChild.dataset.empty == 1) {
+              container.replaceChildren(div);
+            } else {
+              container.prepend(div);
+            }
             hideAddOverlay();
-            this.reset();
           })
           .catch((err) => {
             console.error(err);
-            hideAddOverlay();
-            this.reset();
+            this.lastElementChild.value = `Oops can\'t find ${word}`;
           });
+      } else {
+        this.lastElementChild.value = `${word} existed`;
+        setTimeout(() => {
+          hideAddOverlay();
+        }, 3000);
       }
     });
-  }
-  function handleWordUI() {
-    const wordsHtml = wordsInList.map(_addWordUi).join('');
-    container.innerHTML = wordsHtml;
-  }
-
-  function handleAudiosPlay() {
-    [...document.querySelectorAll('[data-volume-icon]')].forEach(_audioPlay);
-  }
-
-  function handleDeletion() {
-    [...document.querySelectorAll('[data-trash-icon]')].forEach(_wordDelete);
   }
 
   function _addWordUi(word) {
@@ -174,12 +178,34 @@ function MemoActions() {
       }
     });
   }
+  function _handleWordUI() {
+    const wordsHtml = wordsInList.map(_addWordUi).join('');
+    container.innerHTML = wordsHtml;
+  }
+
+  function _handleAudiosPlay() {
+    document.querySelectorAll('[data-volume-icon]').forEach(_audioPlay);
+  }
+
+  function _handleDeletion() {
+    document.querySelectorAll('[data-trash-icon]').forEach(_wordDelete);
+  }
+  function initialize() {
+    chrome.storage.sync.get(STORAGE_KEY, function (data) {
+      if (!chrome.runtime.error) {
+        wordsInList = data[STORAGE_KEY];
+        if (typeof wordsInList != 'object' || wordsInList.length === 0) return;
+
+        _handleWordUI();
+        _handleAudiosPlay();
+        _handleDeletion();
+      }
+    });
+  }
   return {
     hideAddOverlay,
     showAddOverlay,
     addWord,
-    handleWordUI,
-    handleAudiosPlay,
-    handleDeletion
+    initialize
   };
 }
