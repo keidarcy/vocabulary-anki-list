@@ -13,4 +13,12 @@ No other complex un-need functionalities, simply search, add, check the pronunci
 
 `ctrl` , `⌘` + `Enter` , `delete` to toggle vocabulary add modal and `tab` , `Enter` for others.
 
-Get it from [chrome web store](https://chrome.google.com/webstore/detail/vocabulary-anki-memo/jblgpemdpeplkdmkgfggacgfdaofjpjh/related)!
+
+## Preview
+
+<img src="./images/1.png" height="400" width="640" alt="preview">
+<img src="./images/3.png" height="400" width="640" alt="preview">
+
+----
+
+Get it from [chrome web store](https://chrome.google.com/webstore/detail/vocabulary-anki-memo/jblgpemdpeplkdmkgfggacgfdaofjpjh/related) now!
