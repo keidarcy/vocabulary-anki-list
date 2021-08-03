@@ -72,6 +72,10 @@ button.logo-img > p.logo-add {
   transition: all 0.4s ease-out;
   color: #555;
 }
+.word-card.dragging {
+  opacity: 0.5;
+  cursor: move;
+}
 
 .word-card > div {
   padding: 5px;
@@ -174,4 +178,12 @@ button.logo-img > p.logo-add {
 .hide {
   width: 0;
   display: none;
+}
+
+[data-drag-icon] {
+  opacity: 0.3;
+}
+
+[data-drag-icon]:hover {
+  cursor: move;
 }
