@@ -243,7 +243,7 @@ function memoActions() {
   function initialize() {
     chrome.storage.sync.get(STORAGE_KEY, function (data) {
       if (!chrome.runtime.error) {
-        wordsInList = data[STORAGE_KEY];
+        wordsInList = data[STORAGE_KEY] || [];
         if (typeof wordsInList != 'object' || wordsInList.length === 0) return;
 
         _handleWordUI();
