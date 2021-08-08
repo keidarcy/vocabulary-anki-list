@@ -35,13 +35,16 @@ function shortcutsActions() {
       if (e.key === 'Meta' || e.key === 'Control') {
         keyMap.set('control', true);
       }
-      if (keyMap.get('control') && e.key === 'Backspace') {
+      if (keyMap.get('control') && keyMap.get('show') && e.key === 'Enter') {
         memos.hideAddOverlay();
+        keyMap.set('show', false);
+        return;
       }
-      if (keyMap.get('control') && e.key === 'Enter') {
+      if (keyMap.get('control') && !keyMap.get('show') && e.key === 'Enter') {
         memos.showAddOverlay();
+        keyMap.set('show', true);
+        return;
       }
-      return;
     }
   }
 
@@ -79,7 +82,7 @@ function memoActions() {
     // ********************* searchAndSaveToStorage
     const searchUrl = 'https://api.dictionaryapi.dev/api/v2/entries/en_US/';
     const URL = searchUrl + word;
-    this.lastElementChild.value = 'searching...';
+    this.lastElementChild.placeholder = 'searching...';
 
     if (wordsInList.find((w) => w.word === word)) {
       this.lastElementChild.value = `${word} existed`;
@@ -107,7 +110,7 @@ function memoActions() {
               ? meanings[0].definitions[0]?.definition
               : undefined
             : undefined,
-          audio: phonetics.length ? phonetics[0]?.audio : undefined
+          audio: phonetics.length ? `https:${phonetics[0]?.audio}` : undefined
         };
 
         wordsInList.unshift(newWordData);
@@ -129,7 +132,8 @@ function memoActions() {
       })
       .catch((err) => {
         console.error(err);
-        this.lastElementChild.value = `Oops can\'t find ${word}`;
+        this.lastElementChild.value = '';
+        this.lastElementChild.placeholder = `Oops can\'t find ${word}`;
       });
   }
 

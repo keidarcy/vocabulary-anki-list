@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Vocabulary Anki Memo",
   "description": "Quick English vocabulary search history anki memo",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "icons": {
     "16": "icon.png",
     "48": "icon.png",

@@ -41,7 +41,7 @@ function searchAndSaveToStorage(word) {
                 ? meanings[0].definitions[0]?.definition
                 : undefined
               : undefined,
-            audio: phonetics.length ? phonetics[0]?.audio : undefined
+            audio: phonetics.length ? `https:${phonetics[0]?.audio}` : undefined
           };
 
           words.unshift(newWordData);

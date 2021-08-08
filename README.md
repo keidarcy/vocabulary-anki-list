@@ -11,7 +11,7 @@ No other complex un-need functionalities, simply search, add, check the pronunci
 - sync with google account
 - fantastic accessibility that is fully controllable by keyboard
 
-`ctrl` , `⌘` + `Enter` , `delete` to toggle vocabulary add modal and `tab` , `Enter` for others.
+`ctrl` , `⌘` + `Enter` to toggle vocabulary add modal and `tab` , `Enter` for others.
 
 
 ## Preview
