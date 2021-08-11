@@ -56,7 +56,7 @@ function shortcutsActions() {
 
   return {
     handleKeyDown,
-    handleKeyUp
+    handleKeyUp,
   };
 }
 
@@ -110,14 +110,19 @@ function memoActions() {
               ? meanings[0].definitions[0]?.definition
               : undefined
             : undefined,
-          audio: phonetics.length ? `https:${phonetics[0]?.audio}` : undefined
+          audio:
+            phonetics.length && phonetics[0]?.audio
+              ? `https:${phonetics[0]?.audio}`
+              : undefined,
         };
 
         wordsInList.unshift(newWordData);
         _chromeSaveStorage(wordsInList);
         const div = document.createElement('div');
         div.innerHTML = _addWordUi(newWordData);
-        _audioPlay(div.querySelector('[data-volume-icon]'));
+        if (phonetics.length && phonetics[0]?.audio) {
+          _audioPlay(div.querySelector('[data-volume-icon]'));
+        }
         _wordDelete(div.querySelector('[data-trash-icon]'));
         _dragItem(div.querySelector('[data-drag-icon]'), 0);
         if (container.firstElementChild.dataset.empty == 1) {
@@ -219,7 +224,7 @@ function memoActions() {
             return closest;
           }
         },
-        { offset: Number.NEGATIVE_INFINITY }
+        { offset: Number.NEGATIVE_INFINITY },
       );
       return after;
     }
@@ -261,6 +266,6 @@ function memoActions() {
     hideAddOverlay,
     showAddOverlay,
     addWord,
-    initialize
+    initialize,
   };
 }
