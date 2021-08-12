@@ -73,6 +73,7 @@ function memoActions() {
   function hideAddOverlay(e) {
     overlay.classList.add('hide');
     newWordForm.reset();
+    newWordForm.lastElementChild.placeholder = 'Enter to add new word';
   }
   function addWord(e) {
     e.preventDefault();
@@ -85,7 +86,8 @@ function memoActions() {
     this.lastElementChild.placeholder = 'searching...';
 
     if (wordsInList.find((w) => w.word === word)) {
-      this.lastElementChild.value = `${word} existed`;
+      this.reset();
+      this.lastElementChild.placeholder = `${word} existed`;
       setTimeout(() => {
         hideAddOverlay();
       }, 3000);
